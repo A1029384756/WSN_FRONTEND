@@ -84,7 +84,7 @@ impl WirelessSensorNodeFrontendApplication {
             .modal(true)
             .program_name("wireless-sensor-node_frontend")
             .version(VERSION)
-            .authors(vec!["hayden.gray104@gmail.com".into()])
+            .authors(vec!["hayden.gray104@gmail.com".into(), "ddomnick@vt.edu".into()])
             .build();
 
         dialog.present();
