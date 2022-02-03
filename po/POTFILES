@@ -1,0 +1,4 @@
+data/org.vt.WSNFN.desktop.in
+data/org.vt.WSNFN.appdata.xml.in
+data/org.vt.WSNFN.gschema.xml
+src/window.ui

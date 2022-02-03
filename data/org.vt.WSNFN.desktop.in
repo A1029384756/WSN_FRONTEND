@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=wireless-sensor-node_frontend
+Exec=wireless-sensor-node_frontend
+Icon=org.vt.WSNFN
+Terminal=false
+Type=Application
+Categories=GTK;
+StartupNotify=true

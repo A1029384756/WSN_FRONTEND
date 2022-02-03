@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist gettext-domain="wireless-sensor-node_frontend">
+	<schema id="org.vt.WSNFN" path="/org/vt/WSNFN/">
+	</schema>
+</schemalist>
