@@ -4,7 +4,7 @@ mod utils;
 use gtk::prelude::*;
 use gtk::{self, Application, Button};
 use graph::Graph;
-use graph::Connecter;
+use graph::Connector;
 
 fn main() {
     let grapher = Application::new(Some("org.wsn.frontend"),

@@ -72,10 +72,7 @@ impl Graph {
                 if let Some(parent) = self.canvas.parent() {
                     parent.allocation().width() - parent.margin_start() - parent.margin_end()
                 } else {
-                    eprintln!(
-                        "<Graph::send_size_request> A parent is required if no width is \
-                               provided..."
-                    );
+                    eprintln!("Parent required if no width provided");
                     return;
                 }
             }
@@ -92,11 +89,11 @@ impl Graph {
     }
 }
 
-pub trait Connecter {
+pub trait Connector {
     fn connect_to_window_events(&self);
 }
 
-impl Connecter for Rc<RefCell<Graph>> {
+impl Connector for Rc<RefCell<Graph>> {
     fn connect_to_window_events(&self) {
         let s = self.clone();
         if let Some(parent) = self.borrow().layout.toplevel() {
@@ -115,7 +112,7 @@ impl Connecter for Rc<RefCell<Graph>> {
                 false
             });
         } else {
-            eprintln!("This method needs to be called *after* it has been put inside a window");
+            eprintln!("Call this method after putting into a window");
         }
     }
 }
