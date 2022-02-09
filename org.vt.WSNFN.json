@@ -8,6 +8,7 @@
     ],
     "command" : "wireless-sensor-node_frontend",
     "finish-args" : [
+	"--socket=session-bus",
         "--share=network",
         "--share=ipc",
         "--socket=fallback-x11",
