@@ -17,7 +17,7 @@ fn main() {
 fn app(app: &Application) {
     let window = gtk::ApplicationWindow::new(app);
     window.set_size_request(600, 400);
-    window.set_title("Graphing Test");
+    window.set_title("Wireless Sensor Node Viewer");
 
     let (data_graph, button) = utils::connect_graph(Graph::new(), Button::builder().label("Add data").build());
     data_graph.connect_to_window_events();
