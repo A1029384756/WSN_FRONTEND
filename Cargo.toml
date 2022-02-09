@@ -4,5 +4,10 @@ version = "0.1.0"
 edition = "2018"
 
 [dependencies]
-gettext-rs = { version = "0.7", features = ["gettext-system"] }
-gtk = { version = "0.3", package = "gtk4" }
+#gettext-rs = { version = "0.7", features = ["gettext-system"] }
+cairo-rs = {version = "^0.15.1"}
+gtk = {gtk4 = "^0.4.6"}
+rand = "^0.8.4"
+gio = "^0.15.5"
+gdk = "^0.15.2"
+glib = "^0.15.5"
