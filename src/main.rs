@@ -1,35 +1,33 @@
-mod application;
-mod config;
-mod window;
+mod graph;
+mod utils;
 
-use self::application::WirelessSensorNodeFrontendApplication;
-use self::window::WirelessSensorNodeFrontendWindow;
-
-use config::{GETTEXT_PACKAGE, LOCALEDIR, PKGDATADIR};
-use gettextrs::{bind_textdomain_codeset, bindtextdomain, textdomain};
-use gtk::gio;
 use gtk::prelude::*;
+use gtk::{self, Application, Button};
+use graph::Graph;
+use graph::Connecter;
 
 fn main() {
-    // Set up gettext translations
-    bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR).expect("Unable to bind the text domain");
-    bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8")
-        .expect("Unable to set the text domain encoding");
-    textdomain(GETTEXT_PACKAGE).expect("Unable to switch to the text domain");
+    let grapher = Application::new(Some("org.wsn.frontend"),
+    gio::ApplicationFlags::FLAGS_NONE);
 
-    // Load resources
-    let resources = gio::Resource::load(PKGDATADIR.to_owned() + "/wireless-sensor-node_frontend.gresource")
-        .expect("Could not load resources");
-    gio::resources_register(&resources);
-
-    // Create a new GtkApplication. The application manages our main loop,
-    // application windows, integration with the window manager/compositor, and
-    // desktop features such as file opening and single-instance applications.
-    let app = WirelessSensorNodeFrontendApplication::new("org.vt.WSNFN", &gio::ApplicationFlags::empty());
-
-    // Run the application. This function will block until the application
-    // exits. Upon return, we have our exit code to return to the shell. (This
-    // is the code you see when you do `echo $?` after running a command in a
-    // terminal.
-    std::process::exit(app.run());
+    grapher.connect_activate(app);
+    grapher.run();
 }
+
+fn app(app: &Application) {
+    let window = gtk::ApplicationWindow::new(app);
+    window.set_size_request(600, 400);
+    window.set_title("Graphing Test");
+
+    let (data_graph, button) = utils::connect_graph(Graph::new(), Button::builder().label("Add data").build());
+    data_graph.connect_to_window_events();
+
+    let gui_box = gtk::Box::new(gtk::Orientation::Vertical, 15);
+
+
+    gui_box.pack_start(&data_graph.borrow().layout, true, true, 15);
+    gui_box.pack_end(&button, false, true, 5);
+    window.add(&gui_box);
+    window.show_all();
+}
+
