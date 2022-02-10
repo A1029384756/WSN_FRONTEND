@@ -11,18 +11,16 @@ pub struct Graph {
     pub canvas: DrawingArea,
     pub viewport: Viewport,
     initial_diff: Option<i32>,
-    deleted_element: f64,
 }
 
 impl Graph {
     pub fn new() -> Graph {
         let mut g = Graph {
-            data: Vec::with_capacity(30),
+            data: Vec::with_capacity(31),
             layout: gtk::Box::builder().margin(15).build(),
             canvas: DrawingArea::builder().margin(15).build(),
             viewport: Viewport::new(None::<&gtk::Adjustment>, None::<&gtk::Adjustment>),
             initial_diff: None,
-            deleted_element: 0.0,
         };
         println!("Created new graph");
         g.fill_with_data();
@@ -33,7 +31,7 @@ impl Graph {
     }
 
     fn fill_with_data(&mut self) {
-        for i in 0..30 {
+        for i in 0..31 {
             self.data.push(rand::random::<f64>()*100.0);
             println!("Added data: {}", self.data[i]);
         }
@@ -42,7 +40,7 @@ impl Graph {
     }
 
     pub fn add_data(&mut self) {
-        self.deleted_element = *first_vec_element(&self.data).unwrap();
+        //self.deleted_element = *first_vec_element(&self.data).unwrap();
         self.data.remove(0);
         self.data.push(rand::random::<f64>()*100.0);
         //println!("Added random data value:{:?}", self.data.last());
@@ -54,10 +52,10 @@ impl Graph {
         context.paint().unwrap();
         context.set_line_width(2.0);
         context.set_source_rgb(0.0,0.0,0.0);
-        context.move_to(0.0, height - (height/120.0)*self.deleted_element);
+        context.move_to(0.0, height - (height/120.0)*first_vec_element(&self.data).unwrap());
 
         for (i, point) in self.data.iter().enumerate() {
-            context.line_to((width/30.0)*((i as f64) + 1.0), height - (height/120.0)*point);
+            context.line_to((width/30.0)*((i as f64)), height - (height/120.0)*point);
             //println!("Plotted point at Y = {}", point);
         }
         context.stroke().unwrap();
