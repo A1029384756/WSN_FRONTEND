@@ -1,9 +1,9 @@
-use gtk::{prelude::*, Viewport};
 use gtk::{self, cairo, DrawingArea};
+use gtk::{prelude::*, Viewport};
 use std::cell::RefCell;
 
-use std::rc::Rc;
 use crate::utils::first_vec_element;
+use std::rc::Rc;
 
 pub struct Graph {
     pub data: Vec<f64>,
@@ -24,38 +24,53 @@ impl Graph {
         };
         println!("Created new graph");
         g.fill_with_data();
-        g.canvas.set_size_request(500,300);
+        g.canvas.set_size_request(500, 300);
         g.viewport.add(&g.canvas);
-        g.layout.pack_start(&g.viewport,true,true,0);
+        g.layout.pack_start(&g.viewport, true, true, 0);
         g
     }
 
     fn fill_with_data(&mut self) {
-        for i in 0..31 {
-            self.data.push(rand::random::<f64>()*100.0);
-            println!("Added data: {}", self.data[i]);
+        for _i in 0..31 {
+           // self.data.push(rand::random::<f64>() * 100.0);
+           // println!("Added data: {}", self.data[i]);
+           self.data.push(0.0);
         }
 
-        println!("Filled graph with data");
+       // println!("Filled graph with data");
     }
 
-    pub fn add_data(&mut self) {
+    pub fn add_data_random(&mut self) {
         //self.deleted_element = *first_vec_element(&self.data).unwrap();
         self.data.remove(0);
-        self.data.push(rand::random::<f64>()*100.0);
+        self.data.push(rand::random::<f64>() * 100.0);
+        //println!("Added random data value:{:?}", self.data.last());
+        self.canvas.queue_draw();
+    }
+
+    pub fn add_data(&mut self, temperature: f64) {
+        //self.deleted_element = *first_vec_element(&self.data).unwrap();
+        self.data.remove(0);
+        self.data.push(temperature);
         //println!("Added random data value:{:?}", self.data.last());
         self.canvas.queue_draw();
     }
 
     pub fn draw_graph(&self, context: &cairo::Context, width: f64, height: f64) {
-        context.set_source_rgb(1.0,1.0,1.0);
+        context.set_source_rgb(1.0, 1.0, 1.0);
         context.paint().unwrap();
         context.set_line_width(2.0);
-        context.set_source_rgb(0.0,0.0,0.0);
-        context.move_to(0.0, height - (height/120.0)*first_vec_element(&self.data).unwrap());
+        context.set_source_rgb(0.0, 0.0, 0.0);
+        context.move_to(
+            0.0,
+            height - (height / 120.0) * first_vec_element(&self.data).unwrap(),
+        );
 
         for (i, point) in self.data.iter().enumerate() {
-            context.line_to((width/30.0)*((i as f64)), height - (height/120.0)*point);
+            context.line_to(
+                (width / 30.0) * (i as f64),
+                height - (height / 120.0) * point,
+            );
             //println!("Plotted point at Y = {}", point);
         }
         context.stroke().unwrap();
@@ -114,4 +129,3 @@ impl Connector for Rc<RefCell<Graph>> {
         }
     }
 }
-
