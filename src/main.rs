@@ -1,9 +1,6 @@
-#![feature(once_cell)]
-
 mod graph;
 mod utils;
 mod bluetooth;
-
 use graph::Connector;
 use graph::Graph;
 use gtk::prelude::*;
