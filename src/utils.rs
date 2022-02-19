@@ -1,9 +1,8 @@
+use crate::bluetooth::BluetoothManager;
 use crate::graph::Graph;
-
 use gtk::glib;
 use gtk::prelude::*;
 use gtk::Button;
-
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -34,6 +33,12 @@ pub fn connect_graph(graph: Graph, button: Button, rx: glib::Receiver<f64>) -> (
 
     (graph, button)
 }
+
+pub async fn disconnect_bluetooth() {
+    let mut disconnect = BluetoothManager{ module: None, tx: None };
+    disconnect.connect_module().await.unwrap();
+    disconnect.disconnect_bluetooth().await;
+} 
 
 pub fn first_vec_element<T>(v: &Vec<T>) -> Option<&T> {
     v.first()
