@@ -11,11 +11,17 @@ use crate::utils::data_parse;
 const NOTIFIY_CHARACTERISTIC_UUID: Uuid = Uuid::from_u128(0x0000ffe1_0000_1000_8000_00805f9b34fb);
 
 pub struct BluetoothManager {
+    pub adapter: Option<Adapter>,
     pub module: Option<Peripheral>,
     pub tx: Option<glib::Sender<f64>>,
 }
 
 impl BluetoothManager {
+    pub fn new() -> BluetoothManager {
+        let module = BluetoothManager{ adapter: None, module: None, tx: None};
+        module
+    }
+
     pub async fn find_module(&self, central: &Adapter) -> Option<Peripheral> {
         for p in central.peripherals().await.unwrap() {
             if p.properties()
@@ -31,16 +37,23 @@ impl BluetoothManager {
         }
         None
     }
-    
-    pub async fn connect_module(&mut self) -> Result<(), Box<dyn Error>> {
+
+    pub async fn get_adapter(&mut self) -> Result<(), Box<dyn Error>> {
         let manager = Manager::new().await.unwrap();
         let adapters = manager.adapters().await?;
-        let central = adapters.into_iter().nth(0).unwrap();
+        self.adapter = Some(adapters.into_iter().nth(0).unwrap());
+
+        Ok(())
+    }
     
-        central.start_scan(ScanFilter::default()).await?;
+    pub async fn connect_module(&mut self) -> Result<(), Box<dyn Error>> {
+        self.get_adapter().await?;
+    
+        self.adapter.as_ref().unwrap().start_scan(ScanFilter::default()).await?;
         time::sleep(Duration::from_secs(2)).await;
     
-        self.module = Some(self.find_module(&central).await.expect("No module found"));
+        self.module = Some(self.find_module(&self.adapter.as_ref().unwrap()).await.expect("No module found"));
+
         self.module.as_ref().unwrap().connect().await?;
         self.module.as_ref().unwrap().discover_services().await?;
 
@@ -62,7 +75,7 @@ impl BluetoothManager {
         Ok(())
     }
     
-    pub async fn bluetooth_handler(&self) -> f64 {
+    pub async fn bluetooth_handler(&self) {
         let mut notification_stream = 
         self.module.as_ref().unwrap().notifications().await.expect("No notifiers present");
     
@@ -72,14 +85,12 @@ impl BluetoothManager {
                 data.uuid
             );
     
-            println!("{}", data_parse(&data.value));
+            println!("{:?}", data_parse(&data.value));
             self.tx.as_ref().unwrap().send(data_parse(&data.value)).expect(
                 "Could not send data over channel");
         }
     
         self.module.as_ref().unwrap().disconnect().await.expect("Error disconnecting...");
-    
-        0.0
     }
 
     pub async fn disconnect_bluetooth(&self) {

@@ -26,7 +26,8 @@ fn app(app: &Application) {
 
     let (tx, rx) = glib::MainContext::channel::<f64>(glib::PRIORITY_DEFAULT);
 
-    let mut blueman = bluetooth::BluetoothManager{ module: None, tx: Some(tx) };
+    let mut blueman = bluetooth::BluetoothManager::new();
+    blueman.tx = Some(tx);
 
     let bluetooth_task = tokio::spawn(async move {
         blueman.connect_module().await.unwrap();

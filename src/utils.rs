@@ -35,8 +35,11 @@ pub fn connect_graph(graph: Graph, button: Button, rx: glib::Receiver<f64>) -> (
 }
 
 pub async fn disconnect_bluetooth() {
-    let mut disconnect = BluetoothManager{ module: None, tx: None };
-    disconnect.connect_module().await.unwrap();
+    let mut disconnect = BluetoothManager::new();
+    disconnect.get_adapter().await.expect("Could not get adapter for disconnection");
+
+    disconnect.module = disconnect.find_module(&disconnect.adapter.as_ref().unwrap()).await;
+
     disconnect.disconnect_bluetooth().await;
 } 
 
@@ -47,10 +50,9 @@ pub fn first_vec_element<T>(v: &Vec<T>) -> Option<&T> {
 pub fn data_parse(data: &Vec<u8>) -> f64 {
     let mut value:f64;
 
-    value = 10.0 * (data[0] - 48) as f64;
-    value += (data[1] - 48) as f64;
-    value += 0.1 * (data[3] - 48) as f64;
-    value += 0.01 * (data[4] - 48) as f64;
+    value = ((data[0] as u16) << 8) as f64;
+    value += data[1] as f64;
+    value /= 100.0;
 
     value
 }
