@@ -1,12 +1,31 @@
 use gtk::{self, cairo, DrawingArea};
 use gtk::{prelude::*, Viewport};
 use std::cell::RefCell;
-
-use crate::utils::first_vec_element;
 use std::rc::Rc;
+use crate::utils::{first_vec_element, min_vec_element};
+use crate::utils::max_vec_element;
+use crate::utils::context_set_rgb;
+use chrono::prelude::*;
+use chrono::DateTime;
+
+const GRAPH_VERTICAL_PADDING: f64 = 50.0;
+const GRAPH_LEFT_PADDING: f64 = 50.0;
+const GRAPH_RIGHT_PADDING: f64 = 100.0;
+
+pub struct Point {
+    time: DateTime<Local>,
+    pub temperature: f64
+}
+
+impl Point {
+    fn new(temperature: f64) -> Point {
+        let point = Point{ time: Local::now(), temperature: temperature};
+        point
+    }
+}
 
 pub struct Graph {
-    pub data: Vec<f64>,
+    pub data: Vec<Point>,
     pub layout: gtk::Box,
     pub canvas: DrawingArea,
     pub viewport: Viewport,
@@ -17,8 +36,8 @@ impl Graph {
     pub fn new() -> Graph {
         let mut g = Graph {
             data: Vec::with_capacity(31),
-            layout: gtk::Box::builder().margin(15).build(),
-            canvas: DrawingArea::builder().margin(15).build(),
+            layout: gtk::Box::builder().margin(0).build(),
+            canvas: DrawingArea::builder().margin(0).build(),
             viewport: Viewport::new(None::<&gtk::Adjustment>, None::<&gtk::Adjustment>),
             initial_diff: None,
         };
@@ -32,50 +51,75 @@ impl Graph {
 
     fn fill_with_data(&mut self) {
         for _i in 0..31 {
-           // self.data.push(rand::random::<f64>() * 100.0);
-           // println!("Added data: {}", self.data[i]);
-           self.data.push(0.0);
+           self.data.push(Point::new(0.0));
         }
-
-       // println!("Filled graph with data");
     }
 
     pub fn add_data_random(&mut self) {
-        //self.deleted_element = *first_vec_element(&self.data).unwrap();
         self.data.remove(0);
-        self.data.push(rand::random::<f64>() * 100.0);
-        //println!("Added random data value:{:?}", self.data.last());
+        self.data.push(Point::new(rand::random::<f64>() * 100.0));
         self.canvas.queue_draw();
     }
 
     pub fn add_data(&mut self, temperature: f64) {
-        //self.deleted_element = *first_vec_element(&self.data).unwrap();
         self.data.remove(0);
-        self.data.push(temperature);
-        //println!("Added random data value:{:?}", self.data.last());
+        self.data.push(Point::new(temperature));
         self.canvas.queue_draw();
     }
 
     pub fn draw_graph(&self, context: &cairo::Context, width: f64, height: f64) {
-        context.set_source_rgb(1.0, 1.0, 1.0);
-        context.paint().unwrap();
+        //Prepare time axis label
+        let begin_time = format!("{}:{:0>2}:{:0>2}",
+            self.data[0].time.hour().to_string(), 
+            self.data[0].time.minute().to_string(), 
+            self.data[0].time.second().to_string());
+            
+        let end_time = format!("{}:{:0>2}:{:0>2}", 
+            self.data[30].time.hour().to_string(), 
+            self.data[30].time.minute().to_string(), 
+            self.data[30].time.second().to_string());  
+        
+        context_set_rgb((255, 255, 255), &context);
+        context.move_to(5.0, height - 15.0);
+        context.show_text(&begin_time).unwrap();
+        context.move_to(width - GRAPH_RIGHT_PADDING - GRAPH_LEFT_PADDING,
+             height - 15.0);
+        context.show_text(&end_time).unwrap();
+
+        //Set graph line color
         context.set_line_width(2.0);
-        context.set_source_rgb(0.0, 0.0, 0.0);
+        context_set_rgb((155, 89, 182), &context);
+
+        //Get graph parameters
+        let max_val = (max_vec_element(&self.data) + GRAPH_VERTICAL_PADDING)
+            .max(GRAPH_VERTICAL_PADDING);
+        let min_val = (min_vec_element(&self.data) - GRAPH_VERTICAL_PADDING)
+            .min(-1.0 * GRAPH_VERTICAL_PADDING);
+
+        //Prepare actual graphing
         context.move_to(
-            0.0,
-            height - (height / 120.0) * first_vec_element(&self.data).unwrap(),
+            GRAPH_LEFT_PADDING/2.0,
+            height - (height / max_val) * 
+                first_vec_element(&self.data).unwrap().temperature + min_val,
         );
 
         for (i, point) in self.data.iter().enumerate() {
             context.line_to(
-                (width / 30.0) * (i as f64),
-                height - (height / 120.0) * point,
+                ((width - (GRAPH_LEFT_PADDING + GRAPH_RIGHT_PADDING)) / 30.0) * (i as f64) 
+                    + GRAPH_LEFT_PADDING/2.0,
+
+                height - (height / max_val) * point.temperature + min_val,
             );
-            //println!("Plotted point at Y = {}", point);
         }
         context.stroke().unwrap();
 
-        //println!("Drew graph of size {}, {}", width, height);
+        context_set_rgb((149, 165, 166), &context);
+        context.rectangle(GRAPH_LEFT_PADDING/2.0,
+             GRAPH_VERTICAL_PADDING/2.0,
+              width  - GRAPH_RIGHT_PADDING - GRAPH_LEFT_PADDING,
+             height - GRAPH_VERTICAL_PADDING);
+        context.stroke().unwrap();
+
     }
 
     pub fn send_size_request(&self, width: Option<i32>) {

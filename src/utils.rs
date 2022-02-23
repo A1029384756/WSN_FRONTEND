@@ -1,5 +1,6 @@
 use crate::bluetooth::BluetoothManager;
 use crate::graph::Graph;
+use crate::graph::Point;
 use gtk::glib;
 use gtk::prelude::*;
 use gtk::Button;
@@ -47,6 +48,30 @@ pub fn first_vec_element<T>(v: &Vec<T>) -> Option<&T> {
     v.first()
 }
 
+pub fn max_vec_element(v: &Vec<Point>) -> f64 {
+    let mut max = v[0].temperature;
+
+    for value in v {
+        if value.temperature > max {
+            max = value.temperature;
+        }
+    }
+
+    max
+}
+
+pub fn min_vec_element(v: &Vec<Point>) -> f64 {
+    let mut min = v[0].temperature;
+
+    for value in v {
+        if value.temperature < min {
+            min = value.temperature;
+        }
+    }
+
+    min
+}
+
 pub fn data_parse(data: &Vec<u8>) -> f64 {
     let mut value:f64;
 
@@ -60,4 +85,12 @@ pub fn data_parse(data: &Vec<u8>) -> f64 {
 pub fn to_farenheit(mut temperature: f64) -> f64 {
     temperature = temperature * 1.8 + 32.0;
     temperature
+}
+
+pub fn context_set_rgb((red, green, blue): (u8, u8, u8), context: &gtk::cairo::Context) {
+    let r = (red as f64) / 255.0;
+    let g = (green as f64) / 255.0;
+    let b = (blue as f64) / 255.0;
+
+    context.set_source_rgb(r, g, b);
 }
