@@ -8,9 +8,10 @@ use crate::utils::context_set_rgb;
 use chrono::prelude::*;
 use chrono::DateTime;
 
-const GRAPH_VERTICAL_PADDING: f64 = 50.0;
-const GRAPH_LEFT_PADDING: f64 = 50.0;
-const GRAPH_RIGHT_PADDING: f64 = 100.0;
+const GRAPH_TOP_PADDING: f64 = 25.0;
+const GRAPH_BOTTOM_PADDING: f64 = 25.0;
+const GRAPH_LEFT_PADDING: f64 = 25.0;
+const GRAPH_RIGHT_PADDING: f64 = 75.0;
 
 pub struct Point {
     time: DateTime<Local>,
@@ -57,7 +58,7 @@ impl Graph {
 
     pub fn add_data_random(&mut self) {
         self.data.remove(0);
-        self.data.push(Point::new(rand::random::<f64>() * 100.0));
+        self.data.push(Point::new(rand::random::<f64>() * 200.0 - 100.0));
         self.canvas.queue_draw();
     }
 
@@ -80,44 +81,55 @@ impl Graph {
             self.data[30].time.second().to_string());  
         
         context_set_rgb((255, 255, 255), &context);
-        context.move_to(5.0, height - 15.0);
+        context.move_to(GRAPH_LEFT_PADDING, height - 15.0);
         context.show_text(&begin_time).unwrap();
-        context.move_to(width - GRAPH_RIGHT_PADDING - GRAPH_LEFT_PADDING,
-             height - 15.0);
+        context.move_to(width - GRAPH_RIGHT_PADDING - GRAPH_LEFT_PADDING - 20.0,
+             height - GRAPH_BOTTOM_PADDING + 10.0);
         context.show_text(&end_time).unwrap();
+
+        //Get graph parameters
+        let max_val = (max_vec_element(&self.data) + 2.0 * GRAPH_TOP_PADDING)
+            .max(GRAPH_TOP_PADDING+GRAPH_BOTTOM_PADDING);
+        let min_val = (min_vec_element(&self.data) - 2.0 * GRAPH_BOTTOM_PADDING)
+            .min(-1.0 * (GRAPH_BOTTOM_PADDING + GRAPH_TOP_PADDING));
+
+        //Prepare Temperature Axis label
+        context.move_to(width - GRAPH_RIGHT_PADDING + 5.0, height - GRAPH_BOTTOM_PADDING - 10.0);
+        context.show_text(&format!("{:.2}",(min_val + GRAPH_BOTTOM_PADDING))).unwrap();
+        context.move_to(width - GRAPH_RIGHT_PADDING + 5.0, GRAPH_TOP_PADDING + 10.0);
+        context.show_text(&format!("{:.2}", (max_val - GRAPH_TOP_PADDING))).unwrap();
 
         //Set graph line color
         context.set_line_width(2.0);
         context_set_rgb((155, 89, 182), &context);
 
-        //Get graph parameters
-        let max_val = (max_vec_element(&self.data) + GRAPH_VERTICAL_PADDING)
-            .max(GRAPH_VERTICAL_PADDING);
-        let min_val = (min_vec_element(&self.data) - GRAPH_VERTICAL_PADDING)
-            .min(-1.0 * GRAPH_VERTICAL_PADDING);
-
         //Prepare actual graphing
         context.move_to(
-            GRAPH_LEFT_PADDING/2.0,
-            height - (height / max_val) * 
-                first_vec_element(&self.data).unwrap().temperature + min_val,
-        );
+            GRAPH_LEFT_PADDING,
+            height - (height / (max_val + min_val.abs())) * 
+                first_vec_element(&self.data).unwrap().temperature + min_val - GRAPH_BOTTOM_PADDING
+            );
 
         for (i, point) in self.data.iter().enumerate() {
             context.line_to(
                 ((width - (GRAPH_LEFT_PADDING + GRAPH_RIGHT_PADDING)) / 30.0) * (i as f64) 
-                    + GRAPH_LEFT_PADDING/2.0,
+                    + GRAPH_LEFT_PADDING,
 
-                height - (height / max_val) * point.temperature + min_val,
+                height - (height / (max_val + min_val.abs())) * point.temperature - GRAPH_BOTTOM_PADDING + min_val,
             );
         }
+
         context.stroke().unwrap();
 
+        context_set_rgb((255, 255, 255), &context);
+        context.move_to(width - GRAPH_RIGHT_PADDING + 5.0, height - (height/(max_val + min_val.abs()))*self.data.last().unwrap().temperature + min_val - GRAPH_BOTTOM_PADDING);
+        context.show_text(&format!("{:.2}", self.data.last().unwrap().temperature)).unwrap();
+
         context_set_rgb((149, 165, 166), &context);
-        context.rectangle(GRAPH_LEFT_PADDING/2.0,
-             GRAPH_VERTICAL_PADDING/2.0,
+        context.rectangle(GRAPH_LEFT_PADDING,
+             GRAPH_TOP_PADDING,
               width  - GRAPH_RIGHT_PADDING - GRAPH_LEFT_PADDING,
-             height - GRAPH_VERTICAL_PADDING);
+             height - GRAPH_BOTTOM_PADDING - GRAPH_TOP_PADDING - 10.0);
         context.stroke().unwrap();
 
     }

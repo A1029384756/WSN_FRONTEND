@@ -55,6 +55,9 @@ impl BluetoothManager {
         self.module = Some(self.find_module(&self.adapter.as_ref().unwrap()).await.expect("No module found"));
 
         self.module.as_ref().unwrap().connect().await?;
+
+        println!("Connected to module!");
+
         self.module.as_ref().unwrap().discover_services().await?;
 
         Ok(())
